@@ -1,0 +1,15 @@
+// $Id$
+// vim:ft=javascript
+
+ARG_WITH("lcrypto", "LCRYPTO support", "no");
+
+if (PHP_LCRYPTO != "no") {
+	if (ADD_EXTENSION_DEP('LCRYPTO', 'OPENSSL')
+			&& CHECK_LIB("libeay32.lib", "lcrypto", PHP_LCRYPTO)) {
+		AC_DEFINE("HAVE_LCRYPTOLIB",1,"[Whether you want low-level crypto binding]");
+		EXTENSION("lcrypto", "lcrypto.c lcrypto_lcrypto.c");
+	} else {
+		WARNING("lcrypto support can't be enabled, openssl is not enabled");
+		PHP_LCRYPTO = "no";
+	}
+}
