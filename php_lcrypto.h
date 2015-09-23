@@ -25,9 +25,9 @@ extern zend_module_entry lcrypto_module_entry;
 #ifdef PHP_WIN32
 #	define PHP_LCRYPTO_API __declspec(dllexport)
 #elif defined(__GNUC__) && __GNUC__ >= 4
-#	define PHP_LCRYPTO_API __attribute__ ((visibility("default")))
+#	define PLC_API __attribute__ ((visibility("default")))
 #else
-#	define PHP_LCRYPTO_API
+#	define PLC_API
 #endif
 
 #ifdef ZTS
@@ -66,6 +66,103 @@ extern zend_module_entry lcrypto_module_entry;
 	PHP_ABSTRACT_ME(LCrypto_##_##classname, name, arg_info)
 
 
+/* ERROR TYPES */
+
+/* Errors info structure */
+typedef struct {
+	const char *name;
+	const char *msg;
+	int level;
+} plc_error_info;
+
+/* Error processing action */
+typedef enum {
+	PLC_ERROR_ACTION_GLOBAL = 0,
+	PLC_ERROR_ACTION_SILENT,
+	PLC_ERROR_ACTION_EXCEPTION,
+	PLC_ERROR_ACTION_ERROR
+} plc_error_action;
+
+/* Processes error msg and either throw exception,
+ * emits error or do nothing (it depends on action) */
+PLC_API void plc_verror(
+		const plc_error_info *info, zend_class_entry *exc_ce,
+		plc_error_action action, int ignore_args TSRMLS_DC,
+		const char *name, va_list args);
+/* Main error function with arguments */
+PLC_API void plc_error_ex(
+		const plc_error_info *info, zend_class_entry *exc_ce,
+		plc_error_action action, int ignore_args TSRMLS_DC,
+		const char *name, ...);
+/* Main error function without arguments */
+PLC_API void plc_error(
+		const plc_error_info *info, zend_class_entry *exc_ce,
+		plc_error_action action, int ignore_args TSRMLS_DC,
+		const char *name);
+
+/* Macros for crypto exceptions info */
+
+#define PLC_EXCEPTION_CE(ename) \
+	plc_##ename##Exception_ce
+
+#define PLC_EXCEPTION_EXPORT(ename) \
+	extern PLC_API zend_class_entry *PLC_EXCEPTION_CE(ename);
+
+#define PLC_EXCEPTION_DEFINE(ename) \
+	PLC_API zend_class_entry *PLC_EXCEPTION_CE(ename);
+
+#define PLC_EXCEPTION_REGISTER_CE(ce, ename, epname_ce) \
+	INIT_CLASS_ENTRY(ce, PLC_CLASS_NAME(ename ## Exception), NULL); \
+	PLC_EXCEPTION_CE(ename) = PHPC_CLASS_REGISTER_EX(ce, epname_ce, NULL)
+
+#define PLC_EXCEPTION_REGISTER_EX(ce, ename, epname) \
+	PLC_EXCEPTION_REGISTER_CE(ce, ename, PLC_EXCEPTION_CE(epname))
+
+#define PLC_EXCEPTION_REGISTER(ce, ename) \
+	PLC_EXCEPTION_REGISTER_EX(ce, ename, LCrypto)
+
+/* Macros for error info */
+
+#define PLC_ERROR_INFO_NAME(ename) \
+	plc_error_info_##ename
+
+#define PLC_ERROR_INFO_BEGIN(ename) \
+	plc_error_info PLC_ERROR_INFO_NAME(ename)[] = {
+
+#define PLC_ERROR_INFO_ENTRY_EX(einame, eimsg, eilevel) \
+	{ #einame, eimsg, eilevel },
+
+#define PLC_ERROR_INFO_ENTRY(einame, eimsg) \
+	PLC_ERROR_INFO_ENTRY_EX(einame, eimsg, E_WARNING)
+
+#define PLC_ERROR_INFO_END() \
+	{ NULL, NULL, 0} };
+#define PLC_ERROR_INFO_EXPORT(ename) \
+		extern plc_error_info PLC_ERROR_INFO_NAME(ename)[];
+
+#define PLC_ERROR_INFO_REGISTER(ename) do { \
+	long code = 1; \
+	plc_error_info *einfo = PLC_ERROR_INFO_NAME(ename); \
+	while (einfo->name != NULL) { \
+		zend_declare_class_constant_long(PLC_EXCEPTION_CE(ename), \
+			einfo->name, strlen(einfo->name), code++ TSRMLS_CC); \
+		einfo++; \
+	} } while(0)
+
+/* Macros for wrapping error arguments passed to plc_error* */
+
+#define PLC_ERROR_ARGS_EX(ename, eexc, eact, einame) \
+	PLC_ERROR_INFO_NAME(ename), eexc, eact, 0 TSRMLS_CC, #einame
+
+#define PLC_ERROR_ARGS(ename, einame) \
+	PLC_ERROR_ARGS_EX(ename, PLC_EXCEPTION_CE(ename), \
+		PLC_ERROR_ACTION_GLOBAL, einame)
+
+/* Base exception class */
+PLC_EXCEPTION_EXPORT(LCrypto)
+
+
+/* ENCODING */
 
 /* encoding params */
 typedef enum {
@@ -76,7 +173,9 @@ typedef enum {
 
 
 /* GLOBALS */
+
 ZEND_BEGIN_MODULE_GLOBALS(lcrypto)
+	plc_error_action error_action;
 	plc_encoding encoding;
 ZEND_END_MODULE_GLOBALS(lcrypto)
 
@@ -88,11 +187,27 @@ ZEND_END_MODULE_GLOBALS(lcrypto)
 
 
 /* MODULE FUNCTIONS */
+
 PHP_MINIT_FUNCTION(lcrypto);
 PHP_GINIT_FUNCTION(lcrypto);
 PHP_MSHUTDOWN_FUNCTION(lcrypto);
 PHP_MINFO_FUNCTION(lcrypto);
 
+
+/* COMPATIBILITY */
+
+#define PLC_COPY_ERROR_MESSAGE \
+	(PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION == 5 && PHP_RELEASE_VERSION >= 5) \
+	|| (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION >= 6) \
+	|| (PHP_MAJOR_VERSION > 5)
+
+#if PLC_COPY_ERROR_MESSAGE
+#define PLC_GET_ERROR_MESSAGE(const_msg, tmp_msg) \
+	(const_msg)
+#else
+#define PLC_GET_ERROR_MESSAGE(const_msg, tmp_msg) \
+	(tmp_msg = estrdup(const_msg))
+#endif
 
 #endif	/* PHP_LCRYPTO_H */
 
