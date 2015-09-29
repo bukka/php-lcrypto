@@ -91,10 +91,26 @@ PHP_MSHUTDOWN_FUNCTION(lcrypto)
 PHP_MINFO_FUNCTION(lcrypto)
 {
 	php_info_print_table_start();
-	php_info_print_table_row(2, "Low-level Crypto Support", "enabled");
-	php_info_print_table_row(2, "Low-level Crypto Version", PHP_LCRYPTO_VERSION);
-	php_info_print_table_row(2, "OpenSSL Library Version", SSLeay_version(SSLEAY_VERSION));
-	php_info_print_table_row(2, "OpenSSL Header Version", OPENSSL_VERSION_TEXT);
+	php_info_print_table_row(
+		2,
+		"Low-level Crypto Support",
+		"enabled"
+	);
+	php_info_print_table_row(
+		2,
+		"Low-level Crypto Version",
+		PHP_LCRYPTO_VERSION
+	);
+	php_info_print_table_row(
+		2,
+		"OpenSSL Library Version",
+		SSLeay_version(SSLEAY_VERSION)
+	);
+	php_info_print_table_row(
+		2,
+		"OpenSSL Header Version",
+		OPENSSL_VERSION_TEXT
+	);
 	php_info_print_table_end();
 }
 /* }}} */
@@ -116,8 +132,10 @@ PLC_API int plc_long_to_int(phpc_long_t plv, int *lv)
 /* }}} */
 
 /* {{{ plc_verror */
-PLC_API void plc_verror(const plc_error_info *info, zend_class_entry *exc_ce,
-		plc_error_action action, int ignore_args TSRMLS_DC, const char *name, va_list args)
+PLC_API void plc_verror(
+		const plc_error_info *info, zend_class_entry *exc_ce,
+		plc_error_action action, zend_bool lib_error,
+		int ignore_args TSRMLS_DC, const char *name, va_list args)
 {
 	const plc_error_info *ei = NULL;
 	char *message = NULL;
@@ -130,7 +148,8 @@ PLC_API void plc_verror(const plc_error_info *info, zend_class_entry *exc_ce,
 	}
 
 	while (info->name != NULL) {
-		if (*info->name == *name && !strncmp(info->name, name, strlen(info->name))) {
+		if (*info->name == *name &&
+				!strncmp(info->name, name, strlen(info->name))) {
 			ei = info;
 			break;
 		}
@@ -144,11 +163,15 @@ PLC_API void plc_verror(const plc_error_info *info, zend_class_entry *exc_ce,
 	}
 	switch (action) {
 		case PLC_ERROR_ACTION_ERROR:
-			php_verror(NULL, "", ei->level, PLC_GET_ERROR_MESSAGE(ei->msg, message), args TSRMLS_CC);
+			php_verror(NULL, "", ei->level,
+					PLC_GET_ERROR_MESSAGE(ei->msg, message),
+					args TSRMLS_CC);
 			break;
 		case PLC_ERROR_ACTION_EXCEPTION:
 			if (ignore_args) {
-				zend_throw_exception(exc_ce, PLC_GET_ERROR_MESSAGE(ei->msg, message), code TSRMLS_CC);
+				zend_throw_exception(exc_ce,
+						PLC_GET_ERROR_MESSAGE(ei->msg, message),
+						code TSRMLS_CC);
 			} else {
 				vspprintf(&message, 0, ei->msg, args);
 				zend_throw_exception(exc_ce, message, code TSRMLS_CC);
@@ -164,20 +187,25 @@ PLC_API void plc_verror(const plc_error_info *info, zend_class_entry *exc_ce,
 /* }}} */
 
 /* {{{ plc_error_ex */
-PLC_API void plc_error_ex(const plc_error_info *info, zend_class_entry *exc_ce,
-		plc_error_action action, int ignore_args TSRMLS_DC, const char *name, ...)
+PLC_API void plc_error_ex(
+		const plc_error_info *info, zend_class_entry *exc_ce,
+		plc_error_action action, zend_bool lib_error,
+		zend_bool ignore_args TSRMLS_DC, const char *name, ...)
 {
 	va_list args;
 	va_start(args, name);
-	plc_verror(info, exc_ce, action, ignore_args TSRMLS_CC, name, args);
+	plc_verror(info, exc_ce, action, lib_error,
+			ignore_args TSRMLS_CC, name, args);
 	va_end(args);
 }
 /* }}} */
 
 /* {{{ plc_error */
-PLC_API void plc_error(const plc_error_info *info, zend_class_entry *exc_ce,
-		plc_error_action action, int ignore_args TSRMLS_DC, const char *name)
+PLC_API void plc_error(
+		const plc_error_info *info, zend_class_entry *exc_ce,
+		plc_error_action action, zend_bool lib_error,
+		zend_bool ignore_args TSRMLS_DC, const char *name)
 {
-	plc_error_ex(info, exc_ce, action, 1 TSRMLS_CC, name);
+	plc_error_ex(info, exc_ce, action, lib_error, 1 TSRMLS_CC, name);
 }
 /* }}} */

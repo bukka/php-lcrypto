@@ -87,18 +87,18 @@ typedef enum {
  * emits error or do nothing (it depends on action) */
 PLC_API void plc_verror(
 		const plc_error_info *info, zend_class_entry *exc_ce,
-		plc_error_action action, int ignore_args TSRMLS_DC,
-		const char *name, va_list args);
+		plc_error_action action, zend_bool lib_error, int ignore_args
+		TSRMLS_DC, const char *name, va_list args);
 /* Main error function with arguments */
 PLC_API void plc_error_ex(
 		const plc_error_info *info, zend_class_entry *exc_ce,
-		plc_error_action action, int ignore_args TSRMLS_DC,
-		const char *name, ...);
+		plc_error_action action, zend_bool lib_error,
+		zend_bool ignore_args TSRMLS_DC, const char *name, ...);
 /* Main error function without arguments */
 PLC_API void plc_error(
 		const plc_error_info *info, zend_class_entry *exc_ce,
-		plc_error_action action, int ignore_args TSRMLS_DC,
-		const char *name);
+		plc_error_action action, zend_bool lib_error,
+		zend_bool ignore_args TSRMLS_DC, const char *name);
 
 /* Macros for crypto exceptions info */
 
@@ -151,10 +151,21 @@ PLC_API void plc_error(
 
 /* Macros for wrapping error arguments passed to plc_error* */
 
+/* non-library error with parameters */
 #define PLC_ERROR_ARGS_EX(ename, eexc, eact, einame) \
-	PLC_ERROR_INFO_NAME(ename), eexc, eact, 0 TSRMLS_CC, #einame
+	PLC_ERROR_INFO_NAME(ename), eexc, eact, 0, 0 TSRMLS_CC, #einame
 
+/* non-library error without parameters */
 #define PLC_ERROR_ARGS(ename, einame) \
+	PLC_ERROR_ARGS_EX(ename, PLC_EXCEPTION_CE(ename), \
+		PLC_ERROR_ACTION_GLOBAL, einame)
+
+/* library error with parameters */
+#define PLC_ERROR_LIB_ARGS_EX(ename, eexc, eact, einame) \
+	PLC_ERROR_INFO_NAME(ename), eexc, eact, 1, 0 TSRMLS_CC, #einame
+
+/* library error without parameters */
+#define PLC_ERROR_LIB_ARGS(ename, einame) \
 	PLC_ERROR_ARGS_EX(ename, PLC_EXCEPTION_CE(ename), \
 		PLC_ERROR_ACTION_GLOBAL, einame)
 
