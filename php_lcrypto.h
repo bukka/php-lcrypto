@@ -151,12 +151,12 @@ PLC_API void plc_error(
 
 /* Macros for wrapping error arguments passed to plc_error* */
 
-/* non-library error with parameters */
-#define PLC_ERROR_ARGS_EX(ename, eexc, eact, einame) \
+/* extension error with parameters */
+#define PLC_ERROR_EXT_ARGS_EX(ename, eexc, eact, einame) \
 	PLC_ERROR_INFO_NAME(ename), eexc, eact, 0, 0 TSRMLS_CC, #einame
 
-/* non-library error without parameters */
-#define PLC_ERROR_ARGS(ename, einame) \
+/* extension error without parameters */
+#define PLC_ERROR_EXT_ARGS(ename, einame) \
 	PLC_ERROR_ARGS_EX(ename, PLC_EXCEPTION_CE(ename), \
 		PLC_ERROR_ACTION_GLOBAL, einame)
 
