@@ -21,6 +21,11 @@
 
 #include "php_lcrypto.h"
 
+/* Exception */
+PLC_EXCEPTION_EXPORT(RSA)
+/* Error info */
+PLC_ERROR_INFO_EXPORT(RSA)
+
 /* INIT function */
 PHP_MINIT_FUNCTION(plc_rsa);
 

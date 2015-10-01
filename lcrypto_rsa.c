@@ -32,6 +32,92 @@
 
 ZEND_EXTERN_MODULE_GLOBALS(lcrypto)
 
+/* ERRORS */
+
+PLC_EXCEPTION_DEFINE(Cipher)
+PLC_ERROR_INFO_BEGIN(Cipher)
+PLC_ERROR_INFO_ENTRY(
+	INVALID_HEX_ENCODING,
+	"The string contains a non-hexadecimal character"
+)
+PLC_ERROR_INFO_ENTRY(
+	INVALID_DEC_ENCODING,
+	"The string contains a non-decimal character"
+)
+PLC_ERROR_INFO_ENTRY(
+	INVALID_PADDING,
+	"Ivalid padding parameter"
+)
+PLC_ERROR_INFO_ENTRY(
+	KEY_GENERATION_BITS_HIGH,
+	"The number of bits for module size is too high"
+)
+PLC_ERROR_INFO_ENTRY(
+	KEY_GENERATION_FAILED,
+	"The key generation failed"
+)
+PLC_ERROR_INFO_ENTRY(
+	PUB_ENCRYPT_INPUT_LONG,
+	"The public encryption input is too long"
+)
+PLC_ERROR_INFO_ENTRY(
+	PUB_ENCRYPT_FAILED,
+	"The public encryption failed"
+)
+PLC_ERROR_INFO_ENTRY(
+	PRIV_DECRYPT_INPUT_LONG,
+	"The private decryption input is too long"
+)
+PLC_ERROR_INFO_ENTRY(
+	PRIV_DECRYPT_FAILED,
+	"The private decryption failed"
+)
+PLC_ERROR_INFO_ENTRY(
+	PRIV_ENCRYPT_INPUT_LONG,
+	"The private encryption input is too long"
+)
+PLC_ERROR_INFO_ENTRY(
+	PRIV_ENCRYPT_FAILED,
+	"The private encryption failed"
+)
+PLC_ERROR_INFO_ENTRY(
+	PUB_DECRYPT_INPUT_LONG,
+	"The public decryption input is too long"
+)
+PLC_ERROR_INFO_ENTRY(
+	PUB_DECRYPT_FAILED,
+	"The public decryption failed"
+)
+PLC_ERROR_INFO_ENTRY(
+	SIGN_FAILED,
+	"The signing failed"
+)
+PLC_ERROR_INFO_END()
+
+
+typedef enum {
+	PLC_RSA_ERROR_INVALID_HEX_ENC = 1,
+	PLC_RSA_ERROR_INVALID_DEC_ENC,
+	PLC_RSA_ERROR_INVALID_PADDING,
+	PLC_RSA_ERROR_KEY_GENERATION_BITS_HIGH,
+	PLC_RSA_ERROR_KEY_GENERATION_FAILED,
+	PLC_RSA_ERROR_PUB_ENCRYPT_INPUT_LONG,
+	PLC_RSA_ERROR_PUB_ENCRYPT_FAILED,
+	PLC_RSA_ERROR_PRIV_DECRYPT_INPUT_LONG,
+	PLC_RSA_ERROR_PRIV_DECRYPT_FAILED,
+	PLC_RSA_ERROR_PRIV_ENCRYPT_INPUT_LONG,
+	PLC_RSA_ERROR_PRIV_ENCRYPT_FAILED,
+	PLC_RSA_ERROR_PUB_DECRYPT_INPUT_LONG,
+	PLC_RSA_ERROR_PUB_DECRYPT_FAILED,
+	PLC_RSA_ERROR_SIGN_FAILED
+} plc_rsa_error_code;
+
+
+/* class entries */
+static zend_class_entry *plc_rsa_ce;
+static zend_class_entry *plc_rsa_exception_ce;
+
+
 /*
  * Such or greater value would be counted forever. Practically
  * anything higher than 4096 does not make sense already
@@ -107,28 +193,6 @@ static const zend_function_entry plc_rsa_object_methods[] = {
 	PLC_ME(RSA, export,         NULL,                           ZEND_ACC_PUBLIC)
 	PHPC_FE_END
 };
-
-typedef enum {
-	PLC_RSA_ERROR_INVALID_HEX_ENC = 1,
-	PLC_RSA_ERROR_INVALID_DEC_ENC,
-	PLC_RSA_ERROR_INVALID_PADDING,
-	PLC_RSA_ERROR_KEY_GENERATION_BITS_HIGH,
-	PLC_RSA_ERROR_KEY_GENERATION_FAILED,
-	PLC_RSA_ERROR_PUB_ENCRYPT_INPUT_LONG,
-	PLC_RSA_ERROR_PUB_ENCRYPT_FAILED,
-	PLC_RSA_ERROR_PRIV_DECRYPT_INPUT_LONG,
-	PLC_RSA_ERROR_PRIV_DECRYPT_FAILED,
-	PLC_RSA_ERROR_PRIV_ENCRYPT_INPUT_LONG,
-	PLC_RSA_ERROR_PRIV_ENCRYPT_FAILED,
-	PLC_RSA_ERROR_PUB_DECRYPT_INPUT_LONG,
-	PLC_RSA_ERROR_PUB_DECRYPT_FAILED,
-	PLC_RSA_ERROR_SIGN_FAILED
-} plc_rsa_error_code;
-
-
-/* class entries */
-static zend_class_entry *plc_rsa_ce;
-static zend_class_entry *plc_rsa_exception_ce;
 
 /* object handler */
 PHPC_OBJ_DEFINE_HANDLER_VAR(plc_rsa);
@@ -853,7 +917,7 @@ PLC_METHOD(RSA, privateEncrypt)
 	if (dec_len < 0) {
 		zend_throw_exception(plc_rsa_exception_ce,
 				"The private encryption failed",
-				PLC_RSA_ERROR_PUB_ENCRYPT_FAILED TSRMLS_CC);
+				PLC_RSA_ERROR_PRIV_ENCRYPT_FAILED TSRMLS_CC);
 		PHPC_STR_RELEASE(out);
 		RETURN_NULL();
 	}
