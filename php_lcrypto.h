@@ -157,7 +157,7 @@ PLC_API void plc_error(
 
 /* extension error without parameters */
 #define PLC_ERROR_EXT_ARGS(ename, einame) \
-	PLC_ERROR_ARGS_EX(ename, PLC_EXCEPTION_CE(ename), \
+	PLC_ERROR_EXT_ARGS_EX(ename, PLC_EXCEPTION_CE(ename), \
 		PLC_ERROR_ACTION_GLOBAL, einame)
 
 /* library error with parameters */
@@ -166,7 +166,7 @@ PLC_API void plc_error(
 
 /* library error without parameters */
 #define PLC_ERROR_LIB_ARGS(ename, einame) \
-	PLC_ERROR_ARGS_EX(ename, PLC_EXCEPTION_CE(ename), \
+	PLC_ERROR_LIB_ARGS_EX(ename, PLC_EXCEPTION_CE(ename), \
 		PLC_ERROR_ACTION_GLOBAL, einame)
 
 /* Base exception class */

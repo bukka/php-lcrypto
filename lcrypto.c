@@ -55,10 +55,18 @@ zend_module_entry lcrypto_module_entry = {
 ZEND_GET_MODULE(lcrypto)
 #endif
 
+/* Base exception */
+PLC_EXCEPTION_DEFINE(LCrypto);
+
 /* {{{ PHP_MINIT_FUNCTION
  */
 PHP_MINIT_FUNCTION(lcrypto)
 {
+	zend_class_entry ce;
+
+	/* Register base exception */
+	PLC_EXCEPTION_REGISTER_CE(ce, LCrypto, zend_exception_get_default(TSRMLS_C));
+
 	/* Init OpenSSL algorithms */
 	OpenSSL_add_all_algorithms();
 
@@ -73,6 +81,7 @@ PHP_MINIT_FUNCTION(lcrypto)
 PHP_GINIT_FUNCTION(lcrypto)
 {
 	lcrypto_globals->encoding = PLC_ENC_AUTO;
+	lcrypto_globals->error_action = PLC_ERROR_ACTION_EXCEPTION;
 }
 /* }}} */
 

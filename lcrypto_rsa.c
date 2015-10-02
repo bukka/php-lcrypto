@@ -34,8 +34,8 @@ ZEND_EXTERN_MODULE_GLOBALS(lcrypto)
 
 /* ERRORS */
 
-PLC_EXCEPTION_DEFINE(Cipher)
-PLC_ERROR_INFO_BEGIN(Cipher)
+PLC_EXCEPTION_DEFINE(RSA)
+PLC_ERROR_INFO_BEGIN(RSA)
 PLC_ERROR_INFO_ENTRY(
 	INVALID_HEX_ENCODING,
 	"The string contains a non-hexadecimal character"
@@ -93,30 +93,6 @@ PLC_ERROR_INFO_ENTRY(
 	"The signing failed"
 )
 PLC_ERROR_INFO_END()
-
-
-typedef enum {
-	PLC_RSA_ERROR_INVALID_HEX_ENC = 1,
-	PLC_RSA_ERROR_INVALID_DEC_ENC,
-	PLC_RSA_ERROR_INVALID_PADDING,
-	PLC_RSA_ERROR_KEY_GENERATION_BITS_HIGH,
-	PLC_RSA_ERROR_KEY_GENERATION_FAILED,
-	PLC_RSA_ERROR_PUB_ENCRYPT_INPUT_LONG,
-	PLC_RSA_ERROR_PUB_ENCRYPT_FAILED,
-	PLC_RSA_ERROR_PRIV_DECRYPT_INPUT_LONG,
-	PLC_RSA_ERROR_PRIV_DECRYPT_FAILED,
-	PLC_RSA_ERROR_PRIV_ENCRYPT_INPUT_LONG,
-	PLC_RSA_ERROR_PRIV_ENCRYPT_FAILED,
-	PLC_RSA_ERROR_PUB_DECRYPT_INPUT_LONG,
-	PLC_RSA_ERROR_PUB_DECRYPT_FAILED,
-	PLC_RSA_ERROR_SIGN_FAILED
-} plc_rsa_error_code;
-
-
-/* class entries */
-static zend_class_entry *plc_rsa_ce;
-static zend_class_entry *plc_rsa_exception_ce;
-
 
 /*
  * Such or greater value would be counted forever. Practically
@@ -193,6 +169,10 @@ static const zend_function_entry plc_rsa_object_methods[] = {
 	PLC_ME(RSA, export,         NULL,                           ZEND_ACC_PUBLIC)
 	PHPC_FE_END
 };
+
+/* class entry */
+static zend_class_entry *plc_rsa_ce;
+
 
 /* object handler */
 PHPC_OBJ_DEFINE_HANDLER_VAR(plc_rsa);
@@ -314,62 +294,9 @@ PHP_MINIT_FUNCTION(plc_rsa)
 			"NID_SHA512", sizeof("NID_SHA512") - 1,
 			NID_sha512 TSRMLS_CC);
 
-	/* RSAException class */
-	INIT_CLASS_ENTRY(ce, PLC_CLASS_NAME(RSAException), NULL);
-	plc_rsa_exception_ce = PHPC_CLASS_REGISTER_EX(ce,
-			zend_exception_get_default(TSRMLS_C), NULL);
-
-	/* Register RSAException error constant */
-	/* encoding errors */
-	zend_declare_class_constant_long(plc_rsa_exception_ce,
-			"INVALID_HEX_ENCODING", sizeof("INVALID_HEX_ENCODING") - 1,
-			PLC_RSA_ERROR_INVALID_HEX_ENC TSRMLS_CC);
-	zend_declare_class_constant_long(plc_rsa_exception_ce,
-			"INVALID_DEC_ENCODING", sizeof("INVALID_DEC_ENCODING") - 1,
-			PLC_RSA_ERROR_INVALID_DEC_ENC TSRMLS_CC);
-	/* padding error */
-	zend_declare_class_constant_long(plc_rsa_exception_ce,
-			"INVALID_PADDING", sizeof("INVALID_PADDING") - 1,
-			PLC_RSA_ERROR_INVALID_PADDING TSRMLS_CC);
-	/* generation key errors */
-	zend_declare_class_constant_long(plc_rsa_exception_ce,
-			"KEY_GENERATION_BITS_HIGH", sizeof("KEY_GENERATION_BITS_HIGH") - 1,
-			PLC_RSA_ERROR_KEY_GENERATION_BITS_HIGH TSRMLS_CC);
-	zend_declare_class_constant_long(plc_rsa_exception_ce,
-			"KEY_GENERATION_FAILED", sizeof("KEY_GENERATION_FAILED") - 1,
-			PLC_RSA_ERROR_KEY_GENERATION_FAILED TSRMLS_CC);
-	/* public encryption */
-	zend_declare_class_constant_long(plc_rsa_exception_ce,
-			"PUB_ENCRYPT_INPUT_LONG", sizeof("PUB_ENCRYPT_INPUT_LONG") - 1,
-			PLC_RSA_ERROR_PUB_ENCRYPT_INPUT_LONG TSRMLS_CC);
-	zend_declare_class_constant_long(plc_rsa_exception_ce,
-			"PUB_ENCRYPT_FAILED", sizeof("PUB_ENCRYPT_FAILED") - 1,
-			PLC_RSA_ERROR_PUB_ENCRYPT_FAILED TSRMLS_CC);
-	/* private decryption */
-	zend_declare_class_constant_long(plc_rsa_exception_ce,
-			"PRIV_DECRYPT_INPUT_LONG", sizeof("PRIV_DECRYPT_INPUT_LONG") - 1,
-			PLC_RSA_ERROR_PRIV_DECRYPT_INPUT_LONG TSRMLS_CC);
-	zend_declare_class_constant_long(plc_rsa_exception_ce,
-			"PRIV_DECRYPT_FAILED", sizeof("PRIV_DECRYPT_FAILED") - 1,
-			PLC_RSA_ERROR_PRIV_DECRYPT_FAILED TSRMLS_CC);
-	/* private encryption */
-	zend_declare_class_constant_long(plc_rsa_exception_ce,
-			"PRIV_ENCRYPT_INPUT_LONG", sizeof("PRIV_ENCRYPT_INPUT_LONG") - 1,
-			PLC_RSA_ERROR_PRIV_ENCRYPT_INPUT_LONG TSRMLS_CC);
-	zend_declare_class_constant_long(plc_rsa_exception_ce,
-			"PRIV_ENCRYPT_FAILED", sizeof("PRIV_ENCRYPT_FAILED") - 1,
-			PLC_RSA_ERROR_PRIV_ENCRYPT_FAILED TSRMLS_CC);
-	/* public decryption */
-	zend_declare_class_constant_long(plc_rsa_exception_ce,
-			"PUB_DECRYPT_INPUT_LONG", sizeof("PUB_DECRYPT_INPUT_LONG") - 1,
-			PLC_RSA_ERROR_PUB_DECRYPT_INPUT_LONG TSRMLS_CC);
-	zend_declare_class_constant_long(plc_rsa_exception_ce,
-			"PUB_DECRYPT_FAILED", sizeof("PUB_DECRYPT_FAILED") - 1,
-			PLC_RSA_ERROR_PUB_DECRYPT_FAILED TSRMLS_CC);
-	/* signing */
-	zend_declare_class_constant_long(plc_rsa_exception_ce,
-			"SIGN_FAILED", sizeof("SIGN_FAILED") - 1,
-			PLC_RSA_ERROR_SIGN_FAILED TSRMLS_CC);
+	/* RSAException registration */
+	PLC_EXCEPTION_REGISTER(ce, RSA);
+	PLC_ERROR_INFO_REGISTER(RSA);
 
 
 	return SUCCESS;
@@ -401,9 +328,7 @@ static int plc_rsa_check_padding(phpc_long_t padding, zend_bool sigver TSRMLS_DC
 		return SUCCESS;
 	}
 
-	zend_throw_exception(plc_rsa_exception_ce,
-			"Ivalid padding parameter",
-			PLC_RSA_ERROR_INVALID_PADDING TSRMLS_CC);
+	plc_error(PLC_ERROR_EXT_ARGS(RSA, INVALID_PADDING));
 	return FAILURE;
 }
 /* }}} */
@@ -436,16 +361,12 @@ static int plc_rsa_check_encoding(const char **p_sval, phpc_str_size_t *p_sval_l
 			continue;
 		}
 		if (encoding == PLC_ENC_DEC) {
-			zend_throw_exception(plc_rsa_exception_ce,
-					"The string contains a non-decimal character",
-					PLC_RSA_ERROR_INVALID_DEC_ENC TSRMLS_CC);
+			plc_error(PLC_ERROR_EXT_ARGS(RSA, INVALID_DEC_ENCODING));
 			return FAILURE;
 		}
 
 		if (!((c >= 'a') && (c <= 'f')) && !((c >= 'A') && (c <= 'F'))) {
-			zend_throw_exception(plc_rsa_exception_ce,
-					"The string contains a non-hexadecimal character",
-					PLC_RSA_ERROR_INVALID_HEX_ENC TSRMLS_CC);
+			plc_error(PLC_ERROR_EXT_ARGS(RSA, INVALID_HEX_ENCODING));
 			return FAILURE;
 		}
 	}
@@ -723,10 +644,8 @@ PLC_METHOD(RSA, generateKey)
 	PHPC_THIS_FETCH(plc_rsa);
 
 	if (bits > PLC_RSA_MAX_MODULE_SIZE) {
-		zend_throw_exception(plc_rsa_exception_ce,
-				"The number of bits for module size is too high",
-				PLC_RSA_ERROR_KEY_GENERATION_BITS_HIGH TSRMLS_CC);
-		return;
+		plc_error(PLC_ERROR_EXT_ARGS(RSA, KEY_GENERATION_BITS_HIGH));
+		RETURN_FALSE;
 	}
 
 	plc_rsa_set_value(&bn_exp, exponent, exponent_len,
@@ -734,9 +653,8 @@ PLC_METHOD(RSA, generateKey)
 
 
 	if (!RSA_generate_key_ex(PHPC_THIS->ctx, bits, bn_exp, NULL)) {
-		zend_throw_exception(plc_rsa_exception_ce,
-				"The key generation failed",
-				PLC_RSA_ERROR_KEY_GENERATION_FAILED TSRMLS_CC);
+		plc_error(PLC_ERROR_LIB_ARGS(RSA, KEY_GENERATION_FAILED));
+		RETVAL_FALSE;
 	}
 
 	BN_free(bn_exp);
@@ -797,9 +715,7 @@ PLC_METHOD(RSA, publicEncrypt)
 
 	rsa_size = RSA_size(PHPC_THIS->ctx);
 	if (flen > plc_rsa_get_max_input_len(rsa_size, padding)) {
-		zend_throw_exception(plc_rsa_exception_ce,
-				"The public encryption input is too long",
-				PLC_RSA_ERROR_PUB_ENCRYPT_INPUT_LONG TSRMLS_CC);
+		plc_error(PLC_ERROR_EXT_ARGS(RSA, PUB_ENCRYPT_INPUT_LONG ));
 		RETURN_NULL();
 	}
 
@@ -810,9 +726,7 @@ PLC_METHOD(RSA, publicEncrypt)
 			PHPC_THIS->ctx, padding);
 
 	if (enc_len < 0) {
-		zend_throw_exception(plc_rsa_exception_ce,
-				"The public encryption failed",
-				PLC_RSA_ERROR_PUB_ENCRYPT_FAILED TSRMLS_CC);
+		plc_error(PLC_ERROR_LIB_ARGS(RSA, PUB_ENCRYPT_FAILED));
 		PHPC_STR_RELEASE(out);
 		RETURN_NULL();
 	}
@@ -850,9 +764,7 @@ PLC_METHOD(RSA, privateDecrypt)
 
 	rsa_size = RSA_size(PHPC_THIS->ctx);
 	if (flen > rsa_size) {
-		zend_throw_exception(plc_rsa_exception_ce,
-				"The private decryption input is too long",
-				PLC_RSA_ERROR_PRIV_DECRYPT_INPUT_LONG TSRMLS_CC);
+		plc_error(PLC_ERROR_EXT_ARGS(RSA, PRIV_DECRYPT_INPUT_LONG));
 		RETURN_NULL();
 	}
 
@@ -863,9 +775,7 @@ PLC_METHOD(RSA, privateDecrypt)
 			PHPC_THIS->ctx, padding);
 
 	if (dec_len < 0) {
-		zend_throw_exception(plc_rsa_exception_ce,
-				"The private decryption failed",
-				PLC_RSA_ERROR_PRIV_DECRYPT_FAILED TSRMLS_CC);
+		plc_error(PLC_ERROR_LIB_ARGS(RSA, PRIV_DECRYPT_FAILED));
 		PHPC_STR_RELEASE(out);
 		RETURN_NULL();
 	}
@@ -902,9 +812,7 @@ PLC_METHOD(RSA, privateEncrypt)
 
 	rsa_size = RSA_size(PHPC_THIS->ctx);
 	if (flen > rsa_size) {
-		zend_throw_exception(plc_rsa_exception_ce,
-				"The private encryption input is too long",
-				PLC_RSA_ERROR_PRIV_ENCRYPT_INPUT_LONG TSRMLS_CC);
+		plc_error(PLC_ERROR_EXT_ARGS(RSA, PRIV_ENCRYPT_INPUT_LONG));
 		RETURN_NULL();
 	}
 
@@ -915,9 +823,7 @@ PLC_METHOD(RSA, privateEncrypt)
 			PHPC_THIS->ctx, padding);
 
 	if (dec_len < 0) {
-		zend_throw_exception(plc_rsa_exception_ce,
-				"The private encryption failed",
-				PLC_RSA_ERROR_PRIV_ENCRYPT_FAILED TSRMLS_CC);
+		plc_error(PLC_ERROR_LIB_ARGS(RSA, PRIV_ENCRYPT_FAILED));
 		PHPC_STR_RELEASE(out);
 		RETURN_NULL();
 	}
@@ -955,9 +861,7 @@ PLC_METHOD(RSA, publicDecrypt)
 
 	rsa_size = RSA_size(PHPC_THIS->ctx);
 	if (flen > rsa_size) {
-		zend_throw_exception(plc_rsa_exception_ce,
-				"The public decryption input is too long",
-				PLC_RSA_ERROR_PUB_DECRYPT_INPUT_LONG TSRMLS_CC);
+		plc_error(PLC_ERROR_EXT_ARGS(RSA, PUB_DECRYPT_INPUT_LONG));
 		RETURN_NULL();
 	}
 
@@ -968,9 +872,7 @@ PLC_METHOD(RSA, publicDecrypt)
 			PHPC_THIS->ctx, padding);
 
 	if (dec_len < 0) {
-		zend_throw_exception(plc_rsa_exception_ce,
-				"The public decryption failed",
-				PLC_RSA_ERROR_PUB_DECRYPT_FAILED TSRMLS_CC);
+		plc_error(PLC_ERROR_LIB_ARGS(RSA, PUB_DECRYPT_FAILED));
 		PHPC_STR_RELEASE(out);
 		RETURN_NULL();
 	}
@@ -1007,9 +909,7 @@ PLC_METHOD(RSA, sign)
 
 	if (!RSA_sign(type, (unsigned char *) msg, msg_len,
 			(unsigned char *) PHPC_STR_VAL(sig), &sig_len, PHPC_THIS->ctx)) {
-		zend_throw_exception(plc_rsa_exception_ce,
-				"The signing failed",
-				PLC_RSA_ERROR_SIGN_FAILED TSRMLS_CC);
+		plc_error(PLC_ERROR_LIB_ARGS(RSA, SIGN_FAILED));
 		PHPC_STR_RELEASE(sig);
 		RETURN_NULL();
 	}
