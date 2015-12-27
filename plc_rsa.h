@@ -16,8 +16,8 @@
   +----------------------------------------------------------------------+
 */
 
-#ifndef PHP_LCRYPTO_RSA_H
-#define PHP_LCRYPTO_RSA_H
+#ifndef PLC_RSA_H
+#define PLC_RSA_H
 
 #include "php_lcrypto.h"
 
@@ -59,7 +59,7 @@ PLC_METHOD(RSA, sign);
 PLC_METHOD(RSA, verify);
 PLC_METHOD(RSA, export);
 
-#endif	/* PHP_LCRYPTO_RSA_H */
+#endif	/* PLC_RSA_H */
 
 /*
  * Local variables:

@@ -25,7 +25,7 @@
 #include "zend_exceptions.h"
 #include "ext/standard/info.h"
 #include "php_lcrypto.h"
-#include "php_lcrypto_rsa.h"
+#include "plc_rsa.h"
 
 #include <openssl/evp.h>
 

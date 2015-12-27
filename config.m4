@@ -23,7 +23,7 @@ if test "$PHP_LCRYPTO" != "no"; then
     PHP_SUBST(LCRYPTO_SHARED_LIBADD)
     PHP_NEW_EXTENSION(lcrypto, 
       lcrypto.c \
-      lcrypto_rsa.c,
+      plc_rsa.c,
       $ext_shared)
   fi
 fi
