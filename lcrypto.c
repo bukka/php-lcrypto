@@ -26,6 +26,7 @@
 #include "ext/standard/info.h"
 #include "php_lcrypto.h"
 #include "plc_rsa.h"
+#include "plc_err.h"
 
 #include <openssl/evp.h>
 
@@ -55,9 +56,6 @@ zend_module_entry lcrypto_module_entry = {
 ZEND_GET_MODULE(lcrypto)
 #endif
 
-/* Base exception */
-PLC_EXCEPTION_DEFINE(LCrypto);
-
 /* {{{ PHP_MINIT_FUNCTION
  */
 PHP_MINIT_FUNCTION(lcrypto)
@@ -70,6 +68,7 @@ PHP_MINIT_FUNCTION(lcrypto)
 	/* Init OpenSSL algorithms */
 	OpenSSL_add_all_algorithms();
 
+	PHP_MINIT(plc_err)(INIT_FUNC_ARGS_PASSTHRU);
 	PHP_MINIT(plc_rsa)(INIT_FUNC_ARGS_PASSTHRU);
 
 	return SUCCESS;
