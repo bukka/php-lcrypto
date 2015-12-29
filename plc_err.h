@@ -25,9 +25,7 @@
 #define PLC_ERR_DEFAULT_SIZE 16;
 
 PHPC_OBJ_STRUCT_BEGIN(plc_err)
-	unsigned long *errors;
-	int errors_size;
-	int errors_count;
+	unsigned long openssl_error;
 PHPC_OBJ_STRUCT_END()
 
 /* INIT function */

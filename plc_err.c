@@ -25,6 +25,8 @@
 #include "php_lcrypto.h"
 #include "plc_err.h"
 
+#include <openssl/err.h>
+
 /* methods */
 PLC_METHOD(LCryptoException, getOpenSSLErrorString);
 
@@ -47,11 +49,6 @@ PHPC_OBJ_DEFINE_HANDLER_VAR(plc_err);
 PHPC_OBJ_HANDLER_FREE(plc_err)
 {
 	PHPC_OBJ_HANDLER_FREE_INIT(plc_err);
-
-	if (PHPC_THIS->errors) {
-		efree(PHPC_THIS->errors);
-	}
-
 	PHPC_OBJ_HANDLER_FREE_DESTROY();
 }
 /* }}} */
@@ -61,9 +58,13 @@ PHPC_OBJ_HANDLER_CREATE_EX(plc_err)
 {
 	PHPC_OBJ_HANDLER_CREATE_EX_INIT(plc_err);
 
-	PHPC_THIS->errors = NULL;
-	PHPC_THIS->errors_size = 0;
-	PHPC_THIS->errors_count = 0;
+	if (PHPC_OBJ_HANDLER_CREATE_EX_IS_NEW()) {
+		/* when the object is create the last error will be the one
+		 * we are looking for */
+		PHPC_THIS->openssl_error = ERR_get_error();
+		/* we should make sure that no other errors are left */
+		ERR_clear_error();
+	}
 
 	PHPC_OBJ_HANDLER_CREATE_EX_RETURN(plc_err);
 }
@@ -81,13 +82,7 @@ PHPC_OBJ_HANDLER_CLONE(plc_err)
 {
 	PHPC_OBJ_HANDLER_CLONE_INIT(plc_err);
 
-	if (PHPC_THIS->errors) {
-		PHPC_THAT->errors = emalloc(PHPC_THIS->errors_size * sizeof(unsigned long));
-		memcpy(PHPC_THAT->errors, PHPC_THIS->errors,
-			   PHPC_THIS->errors_count * sizeof(unsigned long));
-	}
-	PHPC_THAT->errors_size = PHPC_THIS->errors_size;
-	PHPC_THAT->errors_count = PHPC_THIS->errors_count;
+	PHPC_THAT->openssl_error = PHPC_THIS->openssl_error;
 
 	PHPC_OBJ_HANDLER_CLONE_RETURN();
 }
