@@ -94,7 +94,10 @@ PHP_MINIT_FUNCTION(plc_err)
 {
 	zend_class_entry ce;
 
-	/* RSA class */
+	/* Load error strings */
+	ERR_load_crypto_strings();
+
+	/* RSAException class */
 	INIT_CLASS_ENTRY(ce, PLC_CLASS_NAME(LCryptoException), plc_err_object_methods);
 	PHPC_CLASS_SET_HANDLER_CREATE(ce, plc_err);
 	PLC_EXCEPTION_CE(LCrypto) = PHPC_CLASS_REGISTER_EX(
