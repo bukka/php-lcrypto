@@ -113,5 +113,16 @@ PHP_MINIT_FUNCTION(plc_err)
 /* {{{ proto string LCryptoException::getOpenSSLErrorString() */
 PLC_METHOD(LCryptoException, getOpenSSLErrorString)
 {
+	PHPC_THIS_DECLARE(plc_err);
+	char buf[256];
 
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	PHPC_THIS_FETCH(plc_err);
+
+	ERR_error_string_n(PHPC_THIS->openssl_error, buf, 256);
+
+	PHPC_CSTR_RETURN(buf);
 }
