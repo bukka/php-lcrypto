@@ -61,8 +61,8 @@ PHPC_OBJ_HANDLER_CREATE_EX(plc_err)
 	if (PHPC_OBJ_HANDLER_CREATE_EX_IS_NEW()) {
 		/* when the object is create the last error will be the one
 		 * we are looking for */
-		PHPC_THIS->openssl_error = ERR_get_error();
-		/* we should make sure that no other errors are left */
+		PHPC_THIS->openssl_error = ERR_peek_last_error();
+		/* we should make sure that no errors are left */
 		ERR_clear_error();
 	}
 
