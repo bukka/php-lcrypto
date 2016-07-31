@@ -108,8 +108,23 @@ ZEND_BEGIN_ARG_INFO(arginfo_plc_rsa_set_encoding, 0)
 ZEND_ARG_INFO(0, encoding)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_plc_rsa_set_value, 0, 0, 1)
-ZEND_ARG_INFO(0, value)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_plc_rsa_set_key, 0, 0, 3)
+ZEND_ARG_INFO(0, n)
+ZEND_ARG_INFO(0, e)
+ZEND_ARG_INFO(0, d)
+ZEND_ARG_INFO(0, encoding)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_plc_rsa_set_factors, 0, 0, 2)
+ZEND_ARG_INFO(0, p)
+ZEND_ARG_INFO(0, q)
+ZEND_ARG_INFO(0, encoding)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_plc_rsa_set_crt_params, 0, 0, 3)
+ZEND_ARG_INFO(0, dmp1)
+ZEND_ARG_INFO(0, dmq1)
+ZEND_ARG_INFO(0, iqmp)
 ZEND_ARG_INFO(0, encoding)
 ZEND_END_ARG_INFO()
 
@@ -142,22 +157,12 @@ static const zend_function_entry plc_rsa_object_methods[] = {
 	PLC_ME(RSA, __construct,    NULL,                           ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
 	PLC_ME(RSA, setEncoding,    arginfo_plc_rsa_set_encoding,   ZEND_ACC_PUBLIC)
 	PLC_ME(RSA, getEncoding,    NULL,                           ZEND_ACC_PUBLIC)
-	PLC_ME(RSA, setN,           arginfo_plc_rsa_set_value,      ZEND_ACC_PUBLIC)
-	PLC_ME(RSA, setE,           arginfo_plc_rsa_set_value,      ZEND_ACC_PUBLIC)
-	PLC_ME(RSA, setD,           arginfo_plc_rsa_set_value,      ZEND_ACC_PUBLIC)
-	PLC_ME(RSA, setP,           arginfo_plc_rsa_set_value,      ZEND_ACC_PUBLIC)
-	PLC_ME(RSA, setQ,           arginfo_plc_rsa_set_value,      ZEND_ACC_PUBLIC)
-	PLC_ME(RSA, setDMP1,        arginfo_plc_rsa_set_value,      ZEND_ACC_PUBLIC)
-	PLC_ME(RSA, setDMQ1,        arginfo_plc_rsa_set_value,      ZEND_ACC_PUBLIC)
-	PLC_ME(RSA, setIQMP,        arginfo_plc_rsa_set_value,      ZEND_ACC_PUBLIC)
-	PLC_ME(RSA, getN,           arginfo_plc_rsa_get_value,      ZEND_ACC_PUBLIC)
-	PLC_ME(RSA, getE,           arginfo_plc_rsa_get_value,      ZEND_ACC_PUBLIC)
-	PLC_ME(RSA, getD,           arginfo_plc_rsa_get_value,      ZEND_ACC_PUBLIC)
-	PLC_ME(RSA, getP,           arginfo_plc_rsa_get_value,      ZEND_ACC_PUBLIC)
-	PLC_ME(RSA, getQ,           arginfo_plc_rsa_get_value,      ZEND_ACC_PUBLIC)
-	PLC_ME(RSA, getDMP1,        arginfo_plc_rsa_get_value,      ZEND_ACC_PUBLIC)
-	PLC_ME(RSA, getDMQ1,        arginfo_plc_rsa_get_value,      ZEND_ACC_PUBLIC)
-	PLC_ME(RSA, getIQMP,        arginfo_plc_rsa_get_value,      ZEND_ACC_PUBLIC)
+	PLC_ME(RSA, setKey,         arginfo_plc_rsa_set_key,        ZEND_ACC_PUBLIC)
+	PLC_ME(RSA, setFactors,     arginfo_plc_rsa_set_factors,    ZEND_ACC_PUBLIC)
+	PLC_ME(RSA, setCrtParams,   arginfo_plc_rsa_set_crt_params, ZEND_ACC_PUBLIC)
+	PLC_ME(RSA, getKey,         arginfo_plc_rsa_get_value,      ZEND_ACC_PUBLIC)
+	PLC_ME(RSA, getFactors,     arginfo_plc_rsa_get_value,      ZEND_ACC_PUBLIC)
+	PLC_ME(RSA, getCrtParams,   arginfo_plc_rsa_get_value,      ZEND_ACC_PUBLIC)
 	PLC_ME(RSA, generateKey,    arginfo_plc_rsa_generate_key,   ZEND_ACC_PUBLIC)
 	PLC_ME(RSA, getSize,        NULL,                           ZEND_ACC_PUBLIC)
 	PLC_ME(RSA, publicEncrypt,  arginfo_plc_rsa_encdec,         ZEND_ACC_PUBLIC)
@@ -169,6 +174,58 @@ static const zend_function_entry plc_rsa_object_methods[] = {
 	PLC_ME(RSA, export,         NULL,                           ZEND_ACC_PUBLIC)
 	PHPC_FE_END
 };
+
+/* {{{ OpenSSL compatibility functions and macros */
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+
+static int RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d)
+{
+	r->n = n;
+	r->e = e;
+	r->d = d;
+
+	return 1;
+}
+
+static int RSA_set0_factors(RSA *r, BIGNUM *p, BIGNUM *q)
+{
+	r->p = p;
+	r->q = q;
+
+	return 1;
+}
+
+static int RSA_set0_crt_params(RSA *r, BIGNUM *dmp1, BIGNUM *dmq1, BIGNUM *iqmp)
+{
+	r->dmp1 = dmp1;
+	r->dmq1 = dmq1;
+	r->iqmp = iqmp;
+
+	return 1;
+}
+
+static void RSA_get0_key(const RSA *r, const BIGNUM **n, const BIGNUM **e, const BIGNUM **d)
+{
+	*n = r->n;
+	*e = r->e;
+	*d = r->d;
+}
+
+static void RSA_get0_factors(const RSA *r, const BIGNUM **p, const BIGNUM **q)
+{
+	*p = r->p;
+	*q = r->q;
+}
+
+static void RSA_get0_crt_params(const RSA *r, const BIGNUM **dmp1, const BIGNUM **dmq1, const BIGNUM **iqmp)
+{
+	*dmp1 = r->dmp1;
+	*dmq1 = r->dmq1;
+	*iqmp = r->iqmp;
+}
+
+#endif
+
 
 /* class entry */
 static zend_class_entry *plc_rsa_ce;
@@ -210,13 +267,18 @@ PHPC_OBJ_HANDLER_CREATE(plc_rsa)
 /* {{{ plc_rsa clone object handler */
 PHPC_OBJ_HANDLER_CLONE(plc_rsa)
 {
+	const BIGNUM *n, *e, *d, *p, *q;
 	PHPC_OBJ_HANDLER_CLONE_INIT(plc_rsa);
 
-	PHPC_THAT->ctx->n = BN_dup(PHPC_THIS->ctx->n);
-	PHPC_THAT->ctx->e = BN_dup(PHPC_THIS->ctx->e);
-	PHPC_THAT->ctx->d = BN_dup(PHPC_THIS->ctx->d);
-	PHPC_THAT->ctx->p = BN_dup(PHPC_THIS->ctx->p);
-	PHPC_THAT->ctx->q = BN_dup(PHPC_THIS->ctx->q);
+	RSA_get0_key(PHPC_THIS->ctx, &n, &e, &d);
+	RSA_get0_factors(PHPC_THIS->ctx, &p, &q);
+
+	if (n && e && d) {
+		RSA_set0_key(PHPC_THAT->ctx, BN_dup(n), BN_dup(e), BN_dup(d));
+	}
+	if (p && q) {
+		RSA_set0_factors(PHPC_THAT->ctx, BN_dup(p), BN_dup(q));
+	}
 
 	PHPC_OBJ_HANDLER_CLONE_RETURN();
 }
@@ -391,9 +453,10 @@ static plc_encoding plc_rsa_long_to_encoding(phpc_long_t encoding_value)
 
 /* {{{ */
 static int plc_rsa_set_value(BIGNUM **bnval, const char *sval, phpc_str_size_t sval_len,
-		plc_encoding encoding TSRMLS_DC)
+		phpc_long_t encoding_value TSRMLS_DC)
 {
 	int rc;
+	plc_encoding encoding = plc_rsa_long_to_encoding(encoding_value);
 
 	if (plc_rsa_check_encoding(&sval, &sval_len, &encoding TSRMLS_CC) == FAILURE) {
 		return FAILURE;
@@ -430,24 +493,6 @@ static char *plc_rsa_get_value(BIGNUM *bnval, plc_encoding encoding TSRMLS_DC)
 }
 /* }}} */
 
-/* {{{ */
-static void plc_rsa_set_value_method(INTERNAL_FUNCTION_PARAMETERS, BIGNUM **bnval)
-{
-	char *sval;
-	phpc_str_size_t sval_len;
-	phpc_long_t encoding_value = PLC_G(encoding);
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|l",
-			&sval, &sval_len, &encoding_value) == FAILURE) {
-		return;
-	}
-
-	plc_rsa_set_value(bnval, sval, sval_len,
-			plc_rsa_long_to_encoding(encoding_value) TSRMLS_CC);
-
-	RETURN_NULL();
-}
-/* }}} */
 
 /* {{{ */
 static void plc_rsa_get_value_method(INTERNAL_FUNCTION_PARAMETERS, BIGNUM **bnval)
@@ -465,7 +510,7 @@ static void plc_rsa_get_value_method(INTERNAL_FUNCTION_PARAMETERS, BIGNUM **bnva
 		RETURN_EMPTY_STRING();
 	}
 
-	value = plc_rsa_get_value(*bnval, plc_rsa_long_to_encoding(encoding_value) TSRMLS_CC);
+	value = plc_rsa_get_value(*bnval, encoding_value TSRMLS_CC);
 	PHPC_STR_INIT(out, value, strlen(value));
 	OPENSSL_free(value);
 
@@ -504,123 +549,131 @@ PLC_METHOD(RSA, getEncoding)
 }
 /* }}} */
 
-#define PLC_RSA_METHOD_VALUE_SETTER(name) \
-	PHPC_THIS_DECLARE_AND_FETCH(plc_rsa); \
-	plc_rsa_set_value_method(INTERNAL_FUNCTION_PARAM_PASSTHRU, &PHPC_THIS->ctx->name);
-
-/* {{{ proto void RSA::setN($value, $format = RSA_ENC_HEX) */
-PLC_METHOD(RSA, setN)
+/* {{{ proto bool RSA::setKey($n, $e, $d, $format = RSA_ENC_HEX) */
+PLC_METHOD(RSA, setKey)
 {
-	PLC_RSA_METHOD_VALUE_SETTER(n);
+	BIGNUM *n, *e, *d;
+	char *sn, *se, *sd;
+	phpc_str_size_t sn_len, se_len, sd_len;
+	phpc_long_t encoding_value = PLC_G(encoding);
+	PHPC_THIS_DECLARE(plc_rsa);
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sss|l",
+			&sn, &sn_len, &se, &se_len, &sd, &sd_len, &encoding_value) == FAILURE) {
+		return;
+	}
+
+	PHPC_THIS_FETCH(plc_rsa);
+
+	plc_rsa_set_value(&n, sn, sn_len, encoding_value TSRMLS_CC);
+	plc_rsa_set_value(&e, se, se_len, encoding_value TSRMLS_CC);
+	plc_rsa_set_value(&d, sd, sd_len, encoding_value TSRMLS_CC);
+
+	RETURN_BOOL(RSA_set0_key(PHPC_THIS->ctx, n, e, d));
 }
 /* }}} */
 
-/* {{{ proto void RSA::setE($value, $format = RSA_ENC_HEX) */
-PLC_METHOD(RSA, setE)
+/* {{{ proto bool RSA::setFactors($p, $q, $format = RSA_ENC_HEX) */
+PLC_METHOD(RSA, setFactors)
 {
-	PLC_RSA_METHOD_VALUE_SETTER(e);
+	BIGNUM *p, *q;
+	char *sp, *sq;
+	phpc_str_size_t sp_len, sq_len;
+	phpc_long_t encoding_value = PLC_G(encoding);
+	PHPC_THIS_DECLARE(plc_rsa);
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss|l",
+			&sp, &sp_len, &sq, &sq_len, &encoding_value) == FAILURE) {
+		return;
+	}
+
+	PHPC_THIS_FETCH(plc_rsa);
+
+	plc_rsa_set_value(&p, sp, sp_len, encoding_value TSRMLS_CC);
+	plc_rsa_set_value(&q, sq, sq_len, encoding_value TSRMLS_CC);
+
+	RETURN_BOOL(RSA_set0_factors(PHPC_THIS->ctx, p, q));
 }
 /* }}} */
 
-/* {{{ proto void RSA::setD($value, $format = RSA_ENC_HEX) */
-PLC_METHOD(RSA, setD)
+/* {{{ proto bool RSA::setCrtParams($dmp1, $dmq1, $iqmp, $format = RSA_ENC_HEX) */
+PLC_METHOD(RSA, setCrtParams)
 {
-	PLC_RSA_METHOD_VALUE_SETTER(d);
+	BIGNUM *dmp1, *dmq1, *iqmp;
+	char *sdmp1, *sdmq1, *siqmp;
+	phpc_str_size_t sdmp1_len, sdmq1_len, siqmp_len;
+	phpc_long_t encoding_value = PLC_G(encoding);
+	PHPC_THIS_DECLARE(plc_rsa);
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sss|l",
+			&sdmp1, &sdmp1_len, &sdmq1, &sdmq1_len, &siqmp, &siqmp_len,
+			&encoding_value) == FAILURE) {
+		return;
+	}
+
+	PHPC_THIS_FETCH(plc_rsa);
+
+	plc_rsa_set_value(&dmp1, sdmp1, sdmp1_len, encoding_value TSRMLS_CC);
+	plc_rsa_set_value(&dmq1, sdmq1, sdmq1_len, encoding_value TSRMLS_CC);
+	plc_rsa_set_value(&iqmp, siqmp, siqmp_len, encoding_value TSRMLS_CC);
+
+	RETURN_BOOL(RSA_set0_crt_params(PHPC_THIS->ctx, dmp1, dmq1, iqmp));
 }
 /* }}} */
 
-/* {{{ proto void RSA::setP($value, $format = RSA_ENC_HEX) */
-PLC_METHOD(RSA, setP)
-{
-	PLC_RSA_METHOD_VALUE_SETTER(p);
-}
-/* }}} */
-
-/* {{{ proto void RSA::setQ($value, $format = RSA_ENC_HEX) */
-PLC_METHOD(RSA, setQ)
-{
-	PLC_RSA_METHOD_VALUE_SETTER(q);
-}
-/* }}} */
-
-/* {{{ proto string RSA::setDMP1($value, $format = RSA_ENC_HEX) */
-PLC_METHOD(RSA, setDMP1)
-{
-	PLC_RSA_METHOD_VALUE_SETTER(dmp1);
-}
-/* }}} */
-
-/* {{{ proto string RSA::setDMQ1($value, $format = RSA_ENC_HEX) */
-PLC_METHOD(RSA, setDMQ1)
-{
-	PLC_RSA_METHOD_VALUE_SETTER(dmq1);
-}
-/* }}} */
-
-/* {{{ proto string RSA::setIQMP($value, $format = RSA_ENC_HEX) */
-PLC_METHOD(RSA, setIQMP)
-{
-	PLC_RSA_METHOD_VALUE_SETTER(iqmp);
-}
-/* }}} */
 
 #define PLC_RSA_METHOD_VALUE_GETTER(name) \
 	PHPC_THIS_DECLARE_AND_FETCH(plc_rsa); \
 	plc_rsa_get_value_method(INTERNAL_FUNCTION_PARAM_PASSTHRU, &PHPC_THIS->ctx->name);
 
-/* {{{ proto string RSA::getN($format = RSA_ENC_HEX) */
-PLC_METHOD(RSA, getN)
+/* {{{ proto array RSA::getKey($format = RSA_ENC_HEX) */
+PLC_METHOD(RSA, getKye)
 {
-	PLC_RSA_METHOD_VALUE_GETTER(n);
+	PHPC_THIS_DECLARE(plc_rsa);
+	PHPC_STR_DECLARE(out);
+	phpc_long_t encoding_value = PLC_G(encoding);
+
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|l",
+			&encoding_value) == FAILURE) {
+		return;
+	}
+
+	RETURN_NULL();
 }
 /* }}} */
 
-/* {{{ proto string RSA::getE($format = RSA_ENC_HEX) */
-PLC_METHOD(RSA, getE)
+/* {{{ proto array RSA::getFactors($format = RSA_ENC_HEX) */
+PLC_METHOD(RSA, getFactors)
 {
-	PLC_RSA_METHOD_VALUE_GETTER(e);
+	PHPC_THIS_DECLARE(plc_rsa);
+	PHPC_STR_DECLARE(out);
+	phpc_long_t encoding_value = PLC_G(encoding);
+
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|l",
+			&encoding_value) == FAILURE) {
+		return;
+	}
+
+	RETURN_NULL();
 }
 /* }}} */
 
-/* {{{ proto string RSA::getD($format = RSA_ENC_HEX) */
+/* {{{ proto string RSA::getCrtParams($format = RSA_ENC_HEX) */
 PLC_METHOD(RSA, getD)
 {
-	PLC_RSA_METHOD_VALUE_GETTER(d);
-}
-/* }}} */
+	PHPC_THIS_DECLARE(plc_rsa);
+	PHPC_STR_DECLARE(out);
+	phpc_long_t encoding_value = PLC_G(encoding);
 
-/* {{{ proto string RSA::getP($format = RSA_ENC_HEX) */
-PLC_METHOD(RSA, getP)
-{
-	PLC_RSA_METHOD_VALUE_GETTER(p);
-}
-/* }}} */
 
-/* {{{ proto string RSA::getQ($format = RSA_ENC_HEX) */
-PLC_METHOD(RSA, getQ)
-{
-	PLC_RSA_METHOD_VALUE_GETTER(q);
-}
-/* }}} */
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|l",
+			&encoding_value) == FAILURE) {
+		return;
+	}
 
-/* {{{ proto string RSA::getDMP1($format = RSA_ENC_HEX) */
-PLC_METHOD(RSA, getDMP1)
-{
-	PLC_RSA_METHOD_VALUE_GETTER(dmp1);
-}
-/* }}} */
-
-/* {{{ proto string RSA::getDMQ1($format = RSA_ENC_HEX) */
-PLC_METHOD(RSA, getDMQ1)
-{
-	PLC_RSA_METHOD_VALUE_GETTER(dmq1);
-}
-/* }}} */
-
-/* {{{ proto string RSA::getIQMP($format = RSA_ENC_HEX) */
-PLC_METHOD(RSA, getIQMP)
-{
-	PLC_RSA_METHOD_VALUE_GETTER(iqmp);
+	RETURN_NULL();
 }
 /* }}} */
 
