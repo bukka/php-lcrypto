@@ -627,7 +627,7 @@ PLC_METHOD(RSA, setCrtParams)
 	plc_rsa_get_value_method(INTERNAL_FUNCTION_PARAM_PASSTHRU, &PHPC_THIS->ctx->name);
 
 /* {{{ proto array RSA::getKey($format = RSA_ENC_HEX) */
-PLC_METHOD(RSA, getKye)
+PLC_METHOD(RSA, getKey)
 {
 	PHPC_THIS_DECLARE(plc_rsa);
 	PHPC_STR_DECLARE(out);
@@ -661,7 +661,7 @@ PLC_METHOD(RSA, getFactors)
 /* }}} */
 
 /* {{{ proto string RSA::getCrtParams($format = RSA_ENC_HEX) */
-PLC_METHOD(RSA, getD)
+PLC_METHOD(RSA, getCrtParams)
 {
 	PHPC_THIS_DECLARE(plc_rsa);
 	PHPC_STR_DECLARE(out);
