@@ -2,10 +2,9 @@
 
 function rsa_test_key_create($params, $ctext_ex) {
 	$rsa = new LCrypto\RSA();
-	foreach ($params as $param_name => $param_value) {
-		$method = 'set' . strtoupper($param_name);
-		$rsa->$method($param_value);
-	}
+	$rsa->setKey($params['n'], $params['e'], $params['d']);
+	$rsa->setFactors($params['p'], $params['q']);
+	$rsa->setCrtParams($params['dmp1'], $params['dmq1'], $params['iqmp']);
 
 	return array($rsa, pack('H*', substr($ctext_ex, 2)));
 }
