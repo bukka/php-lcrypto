@@ -564,6 +564,7 @@ PLC_METHOD(RSA, setKey)
 	}
 
 	PHPC_THIS_FETCH(plc_rsa);
+	n = e = d = NULL;
 
 	plc_rsa_set_value(&n, sn, sn_len, encoding_value TSRMLS_CC);
 	plc_rsa_set_value(&e, se, se_len, encoding_value TSRMLS_CC);
@@ -588,6 +589,7 @@ PLC_METHOD(RSA, setFactors)
 	}
 
 	PHPC_THIS_FETCH(plc_rsa);
+	p = q = NULL;
 
 	plc_rsa_set_value(&p, sp, sp_len, encoding_value TSRMLS_CC);
 	plc_rsa_set_value(&q, sq, sq_len, encoding_value TSRMLS_CC);
@@ -612,6 +614,7 @@ PLC_METHOD(RSA, setCrtParams)
 	}
 
 	PHPC_THIS_FETCH(plc_rsa);
+	dmp1 = dmq1 = iqmp = NULL;
 
 	plc_rsa_set_value(&dmp1, sdmp1, sdmp1_len, encoding_value TSRMLS_CC);
 	plc_rsa_set_value(&dmq1, sdmq1, sdmq1_len, encoding_value TSRMLS_CC);
