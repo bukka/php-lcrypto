@@ -629,9 +629,12 @@ PLC_METHOD(RSA, setCrtParams)
 	PHPC_THIS_DECLARE_AND_FETCH(plc_rsa); \
 	plc_rsa_get_value_method(INTERNAL_FUNCTION_PARAM_PASSTHRU, &PHPC_THIS->ctx->name);
 
+#define PLC_RSA_GETTER_ARRAY_UPDATE(_name, _enc)
+
 /* {{{ proto array RSA::getKey($format = RSA_ENC_HEX) */
 PLC_METHOD(RSA, getKey)
 {
+	const BIGNUM *n, *e, *d;
 	PHPC_THIS_DECLARE(plc_rsa);
 	PHPC_STR_DECLARE(out);
 	phpc_long_t encoding_value = PLC_G(encoding);
@@ -642,7 +645,13 @@ PLC_METHOD(RSA, getKey)
 		return;
 	}
 
-	RETURN_NULL();
+	PHPC_THIS_FETCH(plc_rsa);
+	RSA_get0_key(PHPC_THIS->ctx, &n, &e, &d);
+
+	PHPC_ARRAY_INIT(return_value);
+	PLC_RSA_GETTER_ARRAY_UPDATE(n, encoding_value);
+	PLC_RSA_GETTER_ARRAY_UPDATE(e, encoding_value);
+	PLC_RSA_GETTER_ARRAY_UPDATE(d, encoding_value);
 }
 /* }}} */
 
@@ -658,6 +667,7 @@ PLC_METHOD(RSA, getFactors)
 			&encoding_value) == FAILURE) {
 		return;
 	}
+
 
 	RETURN_NULL();
 }
