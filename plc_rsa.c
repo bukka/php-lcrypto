@@ -476,7 +476,7 @@ static int plc_rsa_set_value(BIGNUM **bnval, const char *sval, phpc_str_size_t s
 /* }}} */
 
 /* {{{ */
-static char *plc_rsa_get_value(BIGNUM *bnval, plc_encoding encoding TSRMLS_DC)
+static char *plc_rsa_get_value(const BIGNUM *bnval, plc_encoding encoding)
 {
 	char *value;
 
@@ -493,28 +493,15 @@ static char *plc_rsa_get_value(BIGNUM *bnval, plc_encoding encoding TSRMLS_DC)
 }
 /* }}} */
 
-
 /* {{{ */
-static void plc_rsa_get_value_method(INTERNAL_FUNCTION_PARAMETERS, BIGNUM **bnval)
+static void plc_rsa_add_assoc_value(
+		zval *zvalue, const char *name,
+		const BIGNUM *bnval, phpc_long_t encoding_value)
 {
-	PHPC_STR_DECLARE(out);
-	char *value;
-	phpc_long_t encoding_value = PLC_G(encoding);
+	char *value = plc_rsa_get_value(bnval, encoding_value);
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|l",
-			&encoding_value) == FAILURE) {
-		return;
-	}
-
-	if (!*bnval) {
-		RETURN_EMPTY_STRING();
-	}
-
-	value = plc_rsa_get_value(*bnval, encoding_value TSRMLS_CC);
-	PHPC_STR_INIT(out, value, strlen(value));
+	PHPC_ARRAY_ADD_ASSOC_CSTR(zvalue, name, value);
 	OPENSSL_free(value);
-
-	PHPC_STR_RETURN(out);
 }
 /* }}} */
 
@@ -624,12 +611,8 @@ PLC_METHOD(RSA, setCrtParams)
 }
 /* }}} */
 
-
-#define PLC_RSA_METHOD_VALUE_GETTER(name) \
-	PHPC_THIS_DECLARE_AND_FETCH(plc_rsa); \
-	plc_rsa_get_value_method(INTERNAL_FUNCTION_PARAM_PASSTHRU, &PHPC_THIS->ctx->name);
-
-#define PLC_RSA_GETTER_ARRAY_UPDATE(_name, _enc)
+#define PLC_RSA_GETTER_RETVAL_UPDATE(_name, _enc) \
+	plc_rsa_add_assoc_value(return_value, #_name, _name, _enc)
 
 /* {{{ proto array RSA::getKey($format = RSA_ENC_HEX) */
 PLC_METHOD(RSA, getKey)
@@ -649,9 +632,9 @@ PLC_METHOD(RSA, getKey)
 	RSA_get0_key(PHPC_THIS->ctx, &n, &e, &d);
 
 	PHPC_ARRAY_INIT(return_value);
-	PLC_RSA_GETTER_ARRAY_UPDATE(n, encoding_value);
-	PLC_RSA_GETTER_ARRAY_UPDATE(e, encoding_value);
-	PLC_RSA_GETTER_ARRAY_UPDATE(d, encoding_value);
+	PLC_RSA_GETTER_RETVAL_UPDATE(n, encoding_value);
+	PLC_RSA_GETTER_RETVAL_UPDATE(e, encoding_value);
+	PLC_RSA_GETTER_RETVAL_UPDATE(d, encoding_value);
 }
 /* }}} */
 
