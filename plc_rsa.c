@@ -501,6 +501,7 @@ static void plc_rsa_add_assoc_value(
 	char *value = plc_rsa_get_value(bnval, encoding_value);
 
 	PHPC_ARRAY_ADD_ASSOC_CSTR(zvalue, name, value);
+
 	OPENSSL_free(value);
 }
 /* }}} */
@@ -619,7 +620,6 @@ PLC_METHOD(RSA, getKey)
 {
 	const BIGNUM *n, *e, *d;
 	PHPC_THIS_DECLARE(plc_rsa);
-	PHPC_STR_DECLARE(out);
 	phpc_long_t encoding_value = PLC_G(encoding);
 
 
@@ -641,8 +641,8 @@ PLC_METHOD(RSA, getKey)
 /* {{{ proto array RSA::getFactors($format = RSA_ENC_HEX) */
 PLC_METHOD(RSA, getFactors)
 {
+	const BIGNUM *p, *q;
 	PHPC_THIS_DECLARE(plc_rsa);
-	PHPC_STR_DECLARE(out);
 	phpc_long_t encoding_value = PLC_G(encoding);
 
 
@@ -651,16 +651,20 @@ PLC_METHOD(RSA, getFactors)
 		return;
 	}
 
+	PHPC_THIS_FETCH(plc_rsa);
+	RSA_get0_factors(PHPC_THIS->ctx, &p, &q);
 
-	RETURN_NULL();
+	PHPC_ARRAY_INIT(return_value);
+	PLC_RSA_GETTER_RETVAL_UPDATE(p, encoding_value);
+	PLC_RSA_GETTER_RETVAL_UPDATE(q, encoding_value);
 }
 /* }}} */
 
-/* {{{ proto string RSA::getCrtParams($format = RSA_ENC_HEX) */
+/* {{{ proto array RSA::getCrtParams($format = RSA_ENC_HEX) */
 PLC_METHOD(RSA, getCrtParams)
 {
+	const BIGNUM *dmp1, *dmq1, *iqmp;
 	PHPC_THIS_DECLARE(plc_rsa);
-	PHPC_STR_DECLARE(out);
 	phpc_long_t encoding_value = PLC_G(encoding);
 
 
@@ -669,7 +673,13 @@ PLC_METHOD(RSA, getCrtParams)
 		return;
 	}
 
-	RETURN_NULL();
+	PHPC_THIS_FETCH(plc_rsa);
+	RSA_get0_crt_params(PHPC_THIS->ctx, &dmp1, &dmq1, &iqmp);
+
+	PHPC_ARRAY_INIT(return_value);
+	PLC_RSA_GETTER_RETVAL_UPDATE(dmp1, encoding_value);
+	PLC_RSA_GETTER_RETVAL_UPDATE(dmq1, encoding_value);
+	PLC_RSA_GETTER_RETVAL_UPDATE(iqmp, encoding_value);
 }
 /* }}} */
 
