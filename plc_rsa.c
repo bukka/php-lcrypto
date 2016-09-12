@@ -480,6 +480,10 @@ static char *plc_rsa_get_value(const BIGNUM *bnval, plc_encoding encoding)
 {
 	char *value;
 
+	if (bnval == NULL) {
+		return NULL;
+	}
+
 	switch (encoding) {
 		case PLC_ENC_HEX:
 			value = BN_bn2hex(bnval);
@@ -500,9 +504,12 @@ static void plc_rsa_add_assoc_value(
 {
 	char *value = plc_rsa_get_value(bnval, encoding_value);
 
-	PHPC_ARRAY_ADD_ASSOC_CSTR(zvalue, name, value);
-
-	OPENSSL_free(value);
+	if (value) {
+		PHPC_ARRAY_ADD_ASSOC_CSTR(zvalue, name, value);
+		OPENSSL_free(value);
+	} else {
+		PHPC_ARRAY_ADD_ASSOC_NULL(zvalue, name);
+	}
 }
 /* }}} */
 
