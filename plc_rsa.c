@@ -267,17 +267,21 @@ PHPC_OBJ_HANDLER_CREATE(plc_rsa)
 /* {{{ plc_rsa clone object handler */
 PHPC_OBJ_HANDLER_CLONE(plc_rsa)
 {
-	const BIGNUM *n, *e, *d, *p, *q;
+	const BIGNUM *n, *e, *d, *p, *q, *dmp1, *dmq1, *iqmp;
 	PHPC_OBJ_HANDLER_CLONE_INIT(plc_rsa);
 
 	RSA_get0_key(PHPC_THIS->ctx, &n, &e, &d);
 	RSA_get0_factors(PHPC_THIS->ctx, &p, &q);
+	RSA_get0_crt_params(PHPC_THIS->ctx, &dmp1, &dmq1, &iqmp);
 
 	if (n && e && d) {
 		RSA_set0_key(PHPC_THAT->ctx, BN_dup(n), BN_dup(e), BN_dup(d));
 	}
 	if (p && q) {
 		RSA_set0_factors(PHPC_THAT->ctx, BN_dup(p), BN_dup(q));
+	}
+	if (dmp1 && dmq1 && iqmp) {
+		RSA_set0_crt_params(PHPC_THAT->ctx, BN_dup(dmp1), BN_dup(dmq1), BN_dup(iqmp));
 	}
 
 	PHPC_OBJ_HANDLER_CLONE_RETURN();
