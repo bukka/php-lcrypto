@@ -17,11 +17,23 @@ try {
 $rsa->generateKey(1024, 65537);
 
 $rsa->setEncoding(LCrypto\RSA::ENCODING_HEX);
-var_dump($rsa->getE());
-var_dump($rsa->getN());
+var_dump($rsa->getKey());
+var_dump($rsa->getFactors());
 
 ?>
 --EXPECTF--
 BITS HIGH
-string(6) "010001"
-%s
+array(3) {
+  ["n"]=>
+  string(%d) "%s"
+  ["e"]=>
+  string(6) "010001"
+  ["d"]=>
+  string(%d) "%s"
+}
+array(2) {
+  ["p"]=>
+  string(%d) "%s"
+  ["q"]=>
+  string(%d) "%s"
+}
