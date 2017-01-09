@@ -22,10 +22,11 @@
 #include "php.h"
 #include "phpc/phpc.h"
 
-#define PLC_ERR_DEFAULT_SIZE 16;
+#define PLC_ERR_MAX_NUM 16
 
 PHPC_OBJ_STRUCT_BEGIN(plc_err)
-	unsigned long openssl_error;
+	unsigned long errors[PLC_ERR_MAX_NUM];
+	size_t count;
 PHPC_OBJ_STRUCT_END()
 
 /* INIT function */

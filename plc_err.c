@@ -28,11 +28,11 @@
 #include <openssl/err.h>
 
 /* methods */
-PLC_METHOD(LCryptoException, getOpenSSLErrorString);
+PLC_METHOD(LCryptoException, getLastOpenSSLErrorString);
 
 static const zend_function_entry plc_err_object_methods[] = {
 	PLC_ME(
-		LCryptoException, getOpenSSLErrorString,
+		LCryptoException, getLastOpenSSLErrorString,
 		NULL,
 		ZEND_ACC_PUBLIC
 	)
@@ -59,11 +59,16 @@ PHPC_OBJ_HANDLER_CREATE_EX(plc_err)
 	PHPC_OBJ_HANDLER_CREATE_EX_INIT(plc_err);
 
 	if (PHPC_OBJ_HANDLER_CREATE_EX_IS_NEW()) {
-		/* when the object is create the last error will be the one
-		 * we are looking for */
-		PHPC_THIS->openssl_error = ERR_peek_last_error();
-		/* we should make sure that no errors are left */
-		ERR_clear_error();
+		int i;
+		unsigned long error_code;
+
+		PHPC_THIS->count = 0;
+		/* when the object is create the error queue will contain
+		 * errors that we are looking for */
+		for (i = 0; error_code = ERR_get_error() || i < PLC_ERR_MAX_NUM; i++) {
+			PHPC_THIS->errors[i] = error_code;
+			PHPC_THIS->count++;
+		}
 	}
 
 	PHPC_OBJ_HANDLER_CREATE_EX_RETURN(plc_err);
@@ -82,7 +87,10 @@ PHPC_OBJ_HANDLER_CLONE(plc_err)
 {
 	PHPC_OBJ_HANDLER_CLONE_INIT(plc_err);
 
-	PHPC_THAT->openssl_error = PHPC_THIS->openssl_error;
+	if ((PHPC_THAT->count = PHPC_THIS->count) > 0) {
+		memcpy(PHPC_THAT->errors, PHPC_THIS->errors,
+				sizeof(unsigned long) * PHPC_THIS->count);
+	}
 
 	PHPC_OBJ_HANDLER_CLONE_RETURN();
 }
@@ -110,11 +118,13 @@ PHP_MINIT_FUNCTION(plc_err)
 	return SUCCESS;
 }
 
-/* {{{ proto string LCryptoException::getOpenSSLErrorString() */
-PLC_METHOD(LCryptoException, getOpenSSLErrorString)
+#define PLC_ERR_BUF_SIZE 256
+
+/* {{{ proto string LCryptoException::geLastOpenSSLErrorString() */
+PLC_METHOD(LCryptoException, getLastOpenSSLErrorString)
 {
 	PHPC_THIS_DECLARE(plc_err);
-	char buf[256];
+	char buf[PLC_ERR_BUF_SIZE];
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
@@ -122,7 +132,11 @@ PLC_METHOD(LCryptoException, getOpenSSLErrorString)
 
 	PHPC_THIS_FETCH(plc_err);
 
-	ERR_error_string_n(PHPC_THIS->openssl_error, buf, 256);
+	if (PHPC_THIS->count == 0) {
+		RETURN_NULL();
+	}
+
+	ERR_error_string_n(PHPC_THIS->errors[0], buf, PLC_ERR_BUF_SIZE);
 
 	PHPC_CSTR_RETURN(buf);
 }
