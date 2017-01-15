@@ -21,11 +21,10 @@
 
 #include "php.h"
 #include "phpc/phpc.h"
-
-#define PLC_ERR_MAX_NUM 16
+#include <openssl/err.h>
 
 PHPC_OBJ_STRUCT_BEGIN(plc_err)
-	unsigned long errors[PLC_ERR_MAX_NUM];
+	unsigned long errors[ERR_NUM_ERRORS];
 	size_t count;
 PHPC_OBJ_STRUCT_END()
 

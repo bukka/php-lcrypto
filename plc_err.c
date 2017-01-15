@@ -28,11 +28,17 @@
 #include <openssl/err.h>
 
 /* methods */
-PLC_METHOD(LCryptoException, getLastOpenSSLErrorString);
+PLC_METHOD(LCryptoException, getLastOpenSSLError);
+PLC_METHOD(LCryptoException, getOpenSSLErrors);
 
 static const zend_function_entry plc_err_object_methods[] = {
 	PLC_ME(
-		LCryptoException, getLastOpenSSLErrorString,
+		LCryptoException, getLastOpenSSLError,
+		NULL,
+		ZEND_ACC_PUBLIC
+	)
+	PLC_ME(
+		LCryptoException, getOpenSSLErrors,
 		NULL,
 		ZEND_ACC_PUBLIC
 	)
@@ -58,14 +64,15 @@ PHPC_OBJ_HANDLER_CREATE_EX(plc_err)
 {
 	PHPC_OBJ_HANDLER_CREATE_EX_INIT(plc_err);
 
+	PHPC_THIS->count = 0;
+
 	if (PHPC_OBJ_HANDLER_CREATE_EX_IS_NEW()) {
 		int i;
 		unsigned long error_code;
 
-		PHPC_THIS->count = 0;
 		/* when the object is create the error queue will contain
 		 * errors that we are looking for */
-		for (i = 0; error_code = ERR_get_error() || i < PLC_ERR_MAX_NUM; i++) {
+		for (i = 0; error_code = ERR_get_error() || i < ERR_NUM_ERRORS; i++) {
 			PHPC_THIS->errors[i] = error_code;
 			PHPC_THIS->count++;
 		}
@@ -90,6 +97,7 @@ PHPC_OBJ_HANDLER_CLONE(plc_err)
 	if ((PHPC_THAT->count = PHPC_THIS->count) > 0) {
 		memcpy(PHPC_THAT->errors, PHPC_THIS->errors,
 				sizeof(unsigned long) * PHPC_THIS->count);
+
 	}
 
 	PHPC_OBJ_HANDLER_CLONE_RETURN();
@@ -120,8 +128,8 @@ PHP_MINIT_FUNCTION(plc_err)
 
 #define PLC_ERR_BUF_SIZE 256
 
-/* {{{ proto string LCryptoException::geLastOpenSSLErrorString() */
-PLC_METHOD(LCryptoException, getLastOpenSSLErrorString)
+/* {{{ proto string LCryptoException::geLastOpenSSLError() */
+PLC_METHOD(LCryptoException, getLastOpenSSLError)
 {
 	PHPC_THIS_DECLARE(plc_err);
 	char buf[PLC_ERR_BUF_SIZE];
@@ -139,4 +147,24 @@ PLC_METHOD(LCryptoException, getLastOpenSSLErrorString)
 	ERR_error_string_n(PHPC_THIS->errors[0], buf, PLC_ERR_BUF_SIZE);
 
 	PHPC_CSTR_RETURN(buf);
+}
+
+/* {{{ proto string LCryptoException::getOpenSSLErrors() */
+PLC_METHOD(LCryptoException, getOpenSSLErrors)
+{
+	PHPC_THIS_DECLARE(plc_err);
+	char buf[PLC_ERR_BUF_SIZE];
+	int i;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	PHPC_THIS_FETCH(plc_err);
+	PHPC_ARRAY_INIT(return_value);
+
+	for (i = 0; i < PHPC_THIS->count; i++) {
+		ERR_error_string_n(PHPC_THIS->errors[i], buf, PLC_ERR_BUF_SIZE);
+		PHPC_ARRAY_ADD_NEXT_INDEX_CSTR(return_value, buf);
+	}
 }
