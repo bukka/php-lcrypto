@@ -113,7 +113,7 @@ PHP_MINIT_FUNCTION(plc_err)
 	/* Load error strings */
 	ERR_load_crypto_strings();
 
-	/* RSAException class */
+	/* LCryptoException class */
 	INIT_CLASS_ENTRY(ce, PLC_CLASS_NAME(LCryptoException), plc_err_object_methods);
 	PHPC_CLASS_SET_HANDLER_CREATE(ce, plc_err);
 	PLC_EXCEPTION_CE(LCrypto) = PHPC_CLASS_REGISTER_EX(
@@ -125,6 +125,23 @@ PHP_MINIT_FUNCTION(plc_err)
 
 	return SUCCESS;
 }
+/* }}} */
+
+/* {{{ plc_err_exception_subclass_init */
+void plc_err_exception_subclass_init(const char *name, zend_object_handlers *handlers)
+{
+	zend_class_entry ce;
+
+	INIT_CLASS_ENTRY(ce, name, NULL);
+	PHPC_CLASS_SET_HANDLER_CREATE(ce, plc_err);
+	PLC_EXCEPTION_CE(LCrypto) = PHPC_CLASS_REGISTER_EX(
+			ce, PLC_EXCEPTION_CE(LCrypto), NULL);
+	memcpy(handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
+	PHPC_OBJ_SET_SPECIFIC_HANDLER_OFFSET(*handlers, plc_err);
+	PHPC_OBJ_SET_SPECIFIC_HANDLER_FREE(*handlers, plc_err);
+	PHPC_OBJ_SET_SPECIFIC_HANDLER_CLONE(*handlers, plc_err);
+}
+/* }}} */
 
 #define PLC_ERR_BUF_SIZE 256
 
@@ -148,6 +165,7 @@ PLC_METHOD(LCryptoException, getLastOpenSSLError)
 
 	PHPC_CSTR_RETURN(buf);
 }
+/* }}} */
 
 /* {{{ proto string LCryptoException::getOpenSSLErrors() */
 PLC_METHOD(LCryptoException, getOpenSSLErrors)

@@ -21,6 +21,7 @@
 
 #include "php.h"
 #include "phpc/phpc.h"
+#include "php_lcrypto.h"
 #include <openssl/err.h>
 
 PHPC_OBJ_STRUCT_BEGIN(plc_err)
@@ -31,6 +32,8 @@ PHPC_OBJ_STRUCT_END()
 /* INIT function */
 PHP_MINIT_FUNCTION(plc_err);
 
+PLC_API void plc_err_exception_subclass_init(
+		const char *name, zend_object_handlers *handlers);
 
 #endif // PLC_ERR_H
 
