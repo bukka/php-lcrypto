@@ -33,7 +33,7 @@ PHPC_OBJ_STRUCT_END()
 PHP_MINIT_FUNCTION(plc_err);
 
 PLC_API void plc_err_exception_subclass_init(
-		const char *name, zend_object_handlers *handlers);
+		const char *name, zend_class_entry **exc_ce, zend_object_handlers *handlers);
 
 #endif // PLC_ERR_H
 

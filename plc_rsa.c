@@ -25,6 +25,7 @@
 #include "zend_exceptions.h"
 #include "ext/standard/info.h"
 #include "plc_rsa.h"
+#include "plc_err.h"
 
 #include <openssl/evp.h>
 #include <openssl/rsa.h>
@@ -361,7 +362,7 @@ PHP_MINIT_FUNCTION(plc_rsa)
 			NID_sha512 TSRMLS_CC);
 
 	/* RSAException registration */
-	PLC_EXCEPTION_REGISTER(ce, RSA);
+	PLC_EXCEPTION_REGISTER(RSA);
 	PLC_ERROR_INFO_REGISTER(RSA);
 
 

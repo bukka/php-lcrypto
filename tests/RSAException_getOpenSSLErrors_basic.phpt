@@ -1,5 +1,5 @@
 --TEST--
-RSA::verify basic usage.
+LCrypto\RSAException::getOpenSSLErrors basic usage.
 --SKIPIF--
 <?php
 if (!extension_loaded('lcrypto'))

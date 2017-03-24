@@ -105,11 +105,15 @@ PLC_API void plc_error(
 #define PLC_EXCEPTION_CE(ename) \
 	plc_##ename##Exception_ce
 
+#define PLC_EXCEPTION_HANDLER_NAME(ename) \
+	PHPC_OBJ_GET_HANDLER_VAR_NAME(ename##_exc)
+
 #define PLC_EXCEPTION_EXPORT(ename) \
 	extern PLC_API zend_class_entry *PLC_EXCEPTION_CE(ename);
 
 #define PLC_EXCEPTION_DEFINE(ename) \
-	PLC_API zend_class_entry *PLC_EXCEPTION_CE(ename);
+	PLC_API zend_class_entry *PLC_EXCEPTION_CE(ename); \
+	PHPC_OBJ_DEFINE_HANDLER_VAR(ename##_exc);
 
 #define PLC_EXCEPTION_REGISTER_CE(ce, ename, epname_ce) \
 	INIT_CLASS_ENTRY(ce, PLC_CLASS_NAME(ename ## Exception), NULL); \
@@ -118,8 +122,9 @@ PLC_API void plc_error(
 #define PLC_EXCEPTION_REGISTER_EX(ce, ename, epname) \
 	PLC_EXCEPTION_REGISTER_CE(ce, ename, PLC_EXCEPTION_CE(epname))
 
-#define PLC_EXCEPTION_REGISTER(ce, ename) \
-	PLC_EXCEPTION_REGISTER_EX(ce, ename, LCrypto)
+#define PLC_EXCEPTION_REGISTER(ename) \
+	plc_err_exception_subclass_init(\
+		PLC_CLASS_NAME(ename ## Exception), &PLC_EXCEPTION_CE(ename), &PLC_EXCEPTION_HANDLER_NAME(ename));
 
 /* Macros for error info */
 

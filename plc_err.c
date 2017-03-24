@@ -128,14 +128,14 @@ PHP_MINIT_FUNCTION(plc_err)
 /* }}} */
 
 /* {{{ plc_err_exception_subclass_init */
-void plc_err_exception_subclass_init(const char *name, zend_object_handlers *handlers)
+PLC_API void plc_err_exception_subclass_init(
+		const char *name, zend_class_entry **exc_ce, zend_object_handlers *handlers)
 {
 	zend_class_entry ce;
 
-	INIT_CLASS_ENTRY(ce, name, NULL);
+	INIT_CLASS_ENTRY_EX(ce, name, strlen(name), NULL);
 	PHPC_CLASS_SET_HANDLER_CREATE(ce, plc_err);
-	PLC_EXCEPTION_CE(LCrypto) = PHPC_CLASS_REGISTER_EX(
-			ce, PLC_EXCEPTION_CE(LCrypto), NULL);
+	*exc_ce = PHPC_CLASS_REGISTER_EX(ce, PLC_EXCEPTION_CE(LCrypto), NULL);
 	memcpy(handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
 	PHPC_OBJ_SET_SPECIFIC_HANDLER_OFFSET(*handlers, plc_err);
 	PHPC_OBJ_SET_SPECIFIC_HANDLER_FREE(*handlers, plc_err);
