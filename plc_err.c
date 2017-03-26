@@ -129,7 +129,7 @@ PHP_MINIT_FUNCTION(plc_err)
 
 /* {{{ plc_err_exception_subclass_init */
 PLC_API void plc_err_exception_subclass_init(
-		const char *name, zend_class_entry **exc_ce, zend_object_handlers *handlers)
+		const char *name, zend_class_entry **exc_ce, zend_object_handlers *handlers TSRMLS_DC)
 {
 	zend_class_entry ce;
 

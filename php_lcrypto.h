@@ -68,6 +68,8 @@ extern zend_module_entry lcrypto_module_entry;
 
 /* ERROR TYPES */
 
+#include "plc_err.h"
+
 /* Errors info structure */
 typedef struct {
 	const char *name;
@@ -124,7 +126,8 @@ PLC_API void plc_error(
 
 #define PLC_EXCEPTION_REGISTER(ename) \
 	plc_err_exception_subclass_init(\
-		PLC_CLASS_NAME(ename ## Exception), &PLC_EXCEPTION_CE(ename), &PLC_EXCEPTION_HANDLER_NAME(ename));
+		PLC_CLASS_NAME(ename ## Exception), &PLC_EXCEPTION_CE(ename), \
+		&PLC_EXCEPTION_HANDLER_NAME(ename) TSRMLS_CC);
 
 /* Macros for error info */
 
