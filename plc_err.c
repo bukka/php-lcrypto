@@ -143,6 +143,29 @@ PLC_API void plc_err_exception_subclass_init(
 }
 /* }}} */
 
+typedef struct {
+	unsigned long errors[ERR_NUM_ERRORS];
+	size_t count;
+} plc_err_store_data;
+
+/* {{{ plc_err_store */
+PLC_API void plc_err_store()
+{
+	plc_err_store_data data;
+	int i;
+	unsigned long error_code;
+
+	for (i = 0; error_code = ERR_get_error() || i < ERR_NUM_ERRORS; i++) {
+		data.errors[i] = error_code;
+		data.count++;
+	}
+
+	if (i == 0) {
+		return;
+	}
+}
+/* }}} */
+
 #define PLC_ERR_BUF_SIZE 256
 
 /* {{{ proto string LCryptoException::geLastOpenSSLError() */
